@@ -2,7 +2,7 @@ package com.kid.productscanner.application
 
 import android.app.Application
 import androidx.room.Room
-import com.kid.productscanner.room.ScannerDatabase
+import com.kid.productscanner.repository.cache.room.ScannerDatabase
 
 class ScannerApplication : Application() {
 

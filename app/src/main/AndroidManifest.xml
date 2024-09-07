@@ -9,12 +9,13 @@
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
+        android:name=".application.ScannerApplication"
         android:theme="@style/Theme.ProductScanner"
         tools:targetApi="31">
+
         <activity
             android:name=".main.MainActivity"
             android:exported="true"
-            android:label="@string/app_name"
             android:theme="@style/Theme.ProductScanner.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
