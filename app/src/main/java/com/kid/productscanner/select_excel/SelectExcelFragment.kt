@@ -64,11 +64,17 @@ class SelectExcelFragment : Fragment() {
                             viewModel.deleteAllExcel()
                             //test de khong bi trung package booking no, sau nen xoa di
 
+                            val shouldReload = viewModel.lastExcelLiveData.value == null
+
                             val excelName = queryFileName(requireContext().contentResolver, uri)
                             val excelId =
                                 viewModel.insertExcel(Excel(excelName, System.currentTimeMillis()))
 
-                            insertPackages(uri, excelId.toInt())
+                            if (shouldReload) {
+                                viewModel.reloadExcel()
+                            }
+
+                            openStreamToInsertPacks(uri, excelId.toInt())
                         }
                         binding.relativeLoading.isVisible = false
                     }
@@ -95,14 +101,8 @@ class SelectExcelFragment : Fragment() {
 //        viewModel.initialize()
 
         // Trong Fragment hoặc Activity
-        viewModel.lastExcelDateLiveData.observe(viewLifecycleOwner) { date ->
-            Log.d("Debug", "Excel date: $date")
-        }
-        viewModel.lastExcelNameLiveData.observe(viewLifecycleOwner) { excelName ->
-            Log.d("Debug", "Excel name: $excelName")
-        }
-        viewModel.lastExcelLiveData.observe(viewLifecycleOwner) { excel ->
-            Log.d("Debug", "Excel: $excel")
+        viewModel.percentLiveData.observe(viewLifecycleOwner) { percent ->
+            Log.d("chi.trinh", "percent: ${percent}%")
         }
 
         binding.buttonImportExcel.setOnClickListener {
@@ -129,38 +129,10 @@ class SelectExcelFragment : Fragment() {
     }
 
 
-    private fun insertPackages(uri: Uri, excelId: Int) {
+    private fun openStreamToInsertPacks(uri: Uri, excelId: Int) {
         requireContext().contentResolver.openInputStream(uri)?.use { inputStream ->
             WorkbookFactory.create(inputStream)?.use { workbook ->
-
-                //Lấy sheet đầu tiên (file của a Dũng chỉ có 1 sheet)
-                val sheet = workbook.getSheetAt(0)
-                val titleRow = sheet.getRow(0)
-
-                val bookingNoIndex = titleRow.findIndexOfColumn(ColumnName.BookingNo)
-                val projectNameIndex = titleRow.findIndexOfColumn(ColumnName.ProjectName)
-                val partNumberIndex = titleRow.findIndexOfColumn(ColumnName.PartNumber)
-                val trackingNumberIndex = titleRow.findIndexOfColumn(ColumnName.TrackingNumber)
-
-                val lastRowIndex = sheet.findLastNonEmptyRowIndex()
-
-                val packs = mutableListOf<Pack>()
-                for (i in 0..lastRowIndex) {
-                    val row = sheet.getRow(i)
-                    val bookingNo = row.getCell(bookingNoIndex).stringCellValue.toLongOrNull()
-                    val projectName = row.getCell(projectNameIndex).stringCellValue
-                    val partNumber = row.getCell(partNumberIndex).stringCellValue
-                    val trackingNumber = row.getCell(trackingNumberIndex).stringCellValue
-
-                    if (bookingNo != null) {
-                        packs.add(Pack(bookingNo, projectName, partNumber, trackingNumber, "", 0L, excelId))
-                    }
-
-                    Log.d(TAG, "insertPackages: percent: ${i.toDouble() / lastRowIndex * 100}%")
-                }
-
-                viewModel.insertPackages(packs)
-
+                viewModel.insertPackages(workbook, excelId)
 //// Ghi giá trị vào ô B1
 //                row.createCell(1).setCellValue("New Value")
 //// Lưu file
