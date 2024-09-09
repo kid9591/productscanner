@@ -1,4 +1,4 @@
-package com.kid.productscanner.select_excel
+package com.kid.productscanner.presentation.select_excel
 
 import android.app.Activity
 import android.content.ContentResolver
@@ -17,16 +17,14 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
-import com.kid.productscanner.application.ScannerApplication
-import com.kid.productscanner.common.ColumnName
+import androidx.navigation.fragment.findNavController
+import com.kid.productscanner.R
 import com.kid.productscanner.databinding.FragmentSelectExcelBinding
+import com.kid.productscanner.presentation.application.ScannerApplication
+import com.kid.productscanner.presentation.select_excel.viewmodel.SelectExcelViewModel
+import com.kid.productscanner.presentation.select_excel.viewmodel.SelectExcelViewModelFactory
 import com.kid.productscanner.repository.ScannerRepository
 import com.kid.productscanner.repository.cache.room.entity.Excel
-import com.kid.productscanner.repository.cache.room.entity.Pack
-import com.kid.productscanner.select_excel.viewmodel.SelectExcelViewModel
-import com.kid.productscanner.select_excel.viewmodel.SelectExcelViewModelFactory
-import com.kid.productscanner.utils.findIndexOfColumn
-import com.kid.productscanner.utils.findLastNonEmptyRowIndex
 import com.kid.productscanner.utils.showToast
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -45,7 +43,6 @@ class SelectExcelFragment : Fragment() {
     private val viewModel: SelectExcelViewModel by viewModels {
         val repository =
             ScannerRepository((requireActivity().application as ScannerApplication).scannerDatabase)
-        Log.d(TAG, "vm: repository: $repository")
         SelectExcelViewModelFactory(repository)
     }
 
@@ -105,9 +102,11 @@ class SelectExcelFragment : Fragment() {
             Log.d("chi.trinh", "percent: ${percent}%")
         }
 
-        binding.buttonImportExcel.setOnClickListener {
-//            findNavController().navigate(R.id.action_FirstFragment_to_SecondFragment)
+        binding.buttonUseThis.setOnClickListener {
+            findNavController().navigate(R.id.action_SelectExcel_to_SelectTracking)
+        }
 
+        binding.buttonImportExcel.setOnClickListener {
             selectExcelResultLauncher.launch(
                 Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
                     addCategory(Intent.CATEGORY_OPENABLE)

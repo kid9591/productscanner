@@ -1,25 +1,23 @@
-package com.kid.productscanner.select_excel.viewmodel
+package com.kid.productscanner.presentation.select_excel.viewmodel
 
-import android.util.Log
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.liveData
 import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
+import com.kid.productscanner.common.ColumnName
 import com.kid.productscanner.repository.ScannerRepository
 import com.kid.productscanner.repository.cache.room.entity.Excel
 import com.kid.productscanner.repository.cache.room.entity.Pack
+import com.kid.productscanner.utils.findIndexOfColumn
+import com.kid.productscanner.utils.findLastNonEmptyRowIndex
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
+import org.apache.poi.ss.usermodel.Workbook
 import java.text.SimpleDateFormat
 import java.util.Date
-import android.view.View
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import com.kid.productscanner.common.ColumnName
-import com.kid.productscanner.utils.findIndexOfColumn
-import com.kid.productscanner.utils.findLastNonEmptyRowIndex
-import org.apache.poi.ss.usermodel.Workbook
 import kotlin.math.roundToInt
 
 class SelectExcelViewModel(private val scannerRepository: ScannerRepository) : ViewModel() {

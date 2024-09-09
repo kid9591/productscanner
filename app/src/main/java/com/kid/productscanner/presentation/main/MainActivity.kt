@@ -1,4 +1,4 @@
-package com.kid.productscanner.main
+package com.kid.productscanner.presentation.main
 
 import android.os.Bundle
 import com.google.android.material.snackbar.Snackbar

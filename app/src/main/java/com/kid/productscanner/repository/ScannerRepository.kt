@@ -12,7 +12,7 @@ class ScannerRepository(private val scannerDatabase: ScannerDatabase) {
     }
 
     fun insertPackages(packs: List<Pack>) {
-        scannerDatabase.packageDao().insertAll(packs)
+        scannerDatabase.packDao().insertAll(packs)
     }
 
     fun insertExcel(excel: Excel): Long =
@@ -21,4 +21,13 @@ class ScannerRepository(private val scannerDatabase: ScannerDatabase) {
     fun deleteAllExcel() {
         scannerDatabase.excelDao().deleteAll()
     }
+
+    fun getDistinctTrackingNumbers(): List<String> =
+        scannerDatabase.packDao().getDistinctTrackingNumbers()
+
+    fun findShortestPartNumber(trackingNumber: String): String =
+        scannerDatabase.packDao().findShortestPartNumber(trackingNumber)
+
+    fun getPartNumbersOf(trackingNumber: String): List<String> =
+        scannerDatabase.packDao().getPartNumbersOf(trackingNumber)
 }

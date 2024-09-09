@@ -1,4 +1,4 @@
-package com.kid.productscanner.application
+package com.kid.productscanner.presentation.application
 
 import android.app.Application
 import androidx.room.Room

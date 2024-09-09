@@ -3,26 +3,42 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/FirstFragment">
+    app:startDestination="@id/SelectExcelFragment">
 
     <fragment
-        android:id="@+id/FirstFragment"
-        android:name="com.kid.productscanner.select_excel.SelectExcelFragment"
-        android:label="@string/first_fragment_label"
+        android:id="@+id/SelectExcelFragment"
+        android:name="com.kid.productscanner.presentation.select_excel.SelectExcelFragment"
+        android:label="SelectExcelFragment"
         tools:layout="@layout/fragment_select_excel">
 
         <action
-            android:id="@+id/action_FirstFragment_to_SecondFragment"
-            app:destination="@id/SecondFragment" />
+            android:id="@+id/action_SelectExcel_to_SelectTracking"
+            app:destination="@id/SelectTrackingFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/SelectTrackingFragment"
+        android:name="com.kid.productscanner.presentation.select_tracking.SelectTrackingFragment"
+        android:label="SelectTrackingFragment"
+        tools:layout="@layout/fragment_select_tracking">
+        <action
+            android:id="@+id/action_SelectTrackingFragment_to_scanFragment"
+            app:destination="@id/scanFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
     </fragment>
     <fragment
-        android:id="@+id/SecondFragment"
-        android:name="com.kid.productscanner.select_tracking.SelectTrackingFragment"
-        android:label="@string/second_fragment_label"
-        tools:layout="@layout/fragment_second">
-
-        <action
-            android:id="@+id/action_SecondFragment_to_FirstFragment"
-            app:destination="@id/FirstFragment" />
+        android:id="@+id/scanFragment"
+        android:name="com.kid.productscanner.presentation.scan.ScanFragment"
+        android:label="ScanFragment">
+        <argument
+            android:name="trackingNumber"
+            app:argType="string" />
     </fragment>
 </navigation>

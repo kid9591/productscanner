@@ -5,10 +5,10 @@ import androidx.room.RoomDatabase
 import com.kid.productscanner.repository.cache.room.entity.Excel
 import com.kid.productscanner.repository.cache.room.dao.ExcelDao
 import com.kid.productscanner.repository.cache.room.entity.Pack
-import com.kid.productscanner.repository.cache.room.dao.PackageDao
+import com.kid.productscanner.repository.cache.room.dao.PackDao
 
 @Database(entities = [Excel::class, Pack::class], version = 1)
 abstract class ScannerDatabase : RoomDatabase() {
     abstract fun excelDao(): ExcelDao
-    abstract fun packageDao(): PackageDao
+    abstract fun packDao(): PackDao
 }

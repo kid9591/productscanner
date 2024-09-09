@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+
+        <variable
+            name="viewModel"
+            type="com.kid.productscanner.presentation.scan.viewmodel.ScanViewModel" />
+
+        <import type="android.view.View" />
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".presentation.scan.ScanFragment">
+
+        <TextView
+            android:id="@+id/text_selected_tracking_number"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/normal_margin"
+            android:text="@{`Đang tìm trong tracking number:\n` + viewModel.selectedTrackingNumberLiveData}"
+            android:textSize="@dimen/normal_text"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="abc" />
+
+        <AutoCompleteTextView
+            android:id="@+id/atv_select_part_number"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/normal_margin"
+            android:layout_marginTop="@dimen/normal_margin"
+            android:completionThreshold="0"
+            android:hint="Nhập part number..."
+            app:layout_constraintEnd_toStartOf="@+id/button_clear"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/text_selected_tracking_number" />
+
+        <Button
+            android:id="@+id/button_clear"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_marginEnd="@dimen/normal_margin"
+            android:background="@drawable/ic_clear"
+            app:layout_constraintBottom_toBottomOf="@id/atv_select_part_number"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/atv_select_part_number"
+            app:layout_constraintTop_toTopOf="@+id/atv_select_part_number" />
+
+        <TextView
+            android:id="@+id/text_or"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/normal_margin"
+            android:text="hoặc"
+            android:textSize="@dimen/small_text"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/atv_select_part_number" />
+
+        <Button
+            android:id="@+id/button_take_picture"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/normal_margin"
+            android:text="Chụp ảnh"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/text_or" />
+
+        <TextView
+            android:id="@+id/text_processing"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/normal_margin"
+            android:layout_marginTop="@dimen/normal_margin"
+            android:layout_marginEnd="@dimen/normal_margin"
+            android:text="Processing..."
+            android:textSize="@dimen/normal_text"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/button_take_picture" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</layout>
