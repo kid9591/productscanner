@@ -139,8 +139,6 @@ class ScanFragment : Fragment() {
 
                 binding.relativeLoading.isVisible = true
 
-                Log.d(TAG, "shortest: ${args.shortestPartNumber}")
-
                 val imageUri = Uri.fromFile(File(currentPhotoPath))
                 detectTexts(imageUri) { foundTexts ->
 
@@ -196,6 +194,7 @@ class ScanFragment : Fragment() {
                     if (viewModel.updatePack(pack)) {
                         withContext(Dispatchers.Main) {
                             showToast("Thành công!")
+                            this@ScanFragment.binding.buttonTakePicture.performClick()
                             dialog.dismiss()
                         }
                     }
