@@ -73,12 +73,15 @@ class SelectExcelFragment : Fragment() {
 
                             openStreamToInsertPacks(uri, excelId.toInt())
                         }
+                        showToast("Nhập file excel thành công!")
                         binding.relativeLoading.isVisible = false
                     }
-                } ?: showToast("Error in selecting Excel file - empty Uri")
+                } ?: showToast("Import excel file error - empty Uri")
             } else {
-                // Handle the error
-                showToast("Error in selecting Excel file")
+                if (result.resultCode != Activity.RESULT_CANCELED) {
+                    // Handle the error
+                    showToast("Import excel file error!")
+                }
             }
         }
 

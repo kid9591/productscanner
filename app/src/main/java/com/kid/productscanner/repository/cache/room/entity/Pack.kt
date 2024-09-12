@@ -14,6 +14,7 @@ import androidx.room.PrimaryKey
 )
 data class Pack(
     @PrimaryKey
+    val excelRowNumber: Int,
     val bookingNo: Long,
     val projectName: String,
     val partNumber: String,

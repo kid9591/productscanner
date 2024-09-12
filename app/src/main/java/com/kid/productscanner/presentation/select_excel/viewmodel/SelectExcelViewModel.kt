@@ -1,5 +1,6 @@
 package com.kid.productscanner.presentation.select_excel.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -53,6 +54,7 @@ class SelectExcelViewModel(private val scannerRepository: ScannerRepository) : V
                 if (bookingNo != null) {
                     packs.add(
                         Pack(
+                            row.rowNum,
                             bookingNo,
                             projectName,
                             partNumber,
