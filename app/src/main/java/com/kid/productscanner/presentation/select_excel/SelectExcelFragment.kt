@@ -14,6 +14,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.FileProvider
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -31,6 +32,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.apache.poi.ss.usermodel.WorkbookFactory
+import java.io.File
 
 
 /**
@@ -126,6 +128,57 @@ class SelectExcelFragment : Fragment() {
         binding.buttonImportExcelNoFile.setOnClickListener {
             selectExcelCodeBlock()
         }
+        binding.buttonDownloadExcel.setOnClickListener {
+            binding.relativeLoading.isVisible = true
+            lifecycleScope.launch(Dispatchers.IO) {
+                try {
+                    val file = File(
+                        requireContext().filesDir,
+                        viewModel.lastExcelName ?: "Not existed file.xxx"
+                    )
+                    if (file.exists()) {
+                        file.inputStream().use { inputStream ->
+                            WorkbookFactory.create(inputStream)?.use { workbook ->
+
+                                Log.d(TAG, "write excel file stream opened")
+                                viewModel.updateChangedPacksTo(workbook)
+
+                                file.outputStream().use { outputStream ->
+                                    workbook.write(outputStream)
+                                }
+
+                                withContext(Dispatchers.Main) {
+                                    binding.relativeLoading.isVisible = false
+                                    shareFile(file)
+                                }
+                            }
+                        }
+                    }
+                } catch (e: Exception) {
+                    withContext(Dispatchers.Main) {
+                        binding.relativeLoading.isVisible = false
+                        e.printStackTrace()
+                        showToast(e.localizedMessage ?: "Unknown error")
+                    }
+                }
+            }
+        }
+    }
+
+    private fun shareFile(file: File) {
+        val uri = FileProvider.getUriForFile(
+            requireContext(),
+            "com.kid.productscanner.fileprovider", // Thay thế bằng authority trong file provider của bạn
+            file
+        )
+
+        val intent = Intent(Intent.ACTION_SEND).apply {
+            type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            putExtra(Intent.EXTRA_STREAM, uri)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+
+        requireContext().startActivity(Intent.createChooser(intent, "Chia sẻ file"))
     }
 
     private fun queryFileName(resolver: ContentResolver, uri: Uri): String {
@@ -173,11 +226,6 @@ class SelectExcelFragment : Fragment() {
         requireContext().contentResolver.openInputStream(uri)?.use { inputStream ->
             WorkbookFactory.create(inputStream)?.use { workbook ->
                 viewModel.insertPackages(workbook, excelId)
-//// Ghi giá trị vào ô B1
-//                row.createCell(1).setCellValue("New Value")
-//// Lưu file
-//                val outputStream = FileOutputStream("output.xlsx")
-//                workbook.write(outputStream)
             }
         }
     }

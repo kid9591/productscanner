@@ -1,7 +1,6 @@
 package com.kid.productscanner.presentation.select_excel.viewmodel
 
 import android.annotation.SuppressLint
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -86,8 +85,27 @@ class SelectExcelViewModel(private val scannerRepository: ScannerRepository) : V
         }.await()
     }
 
+    @SuppressLint("SimpleDateFormat")
+    fun updateChangedPacksTo(workbook: Workbook) {
+        val sheet = workbook.getSheetAt(0)
+        val titleRow = sheet.getRow(0)
+
+        val quantityReceivedIndex = titleRow.findIndexOfColumn(ColumnName.QuantityReceived)
+        val dateReceivedIndex = titleRow.findIndexOfColumn(ColumnName.DateReceived)
+
+        scannerRepository.getChangedPacks().forEach { pack ->
+            sheet.getRow(pack.excelRowNumber)?.apply {
+                getCell(quantityReceivedIndex)?.setCellValue(pack.quantityReceived)
+                val dateFormated = SimpleDateFormat("yyyyMMdd").format(Date(pack.dateReceivedMillis))
+                getCell(dateReceivedIndex)?.setCellValue(dateFormated)
+            }
+        }
+    }
+
     var lastExcelLiveData: LiveData<Excel?> = scannerRepository.getLastExcel()
 
+    val lastExcelName
+        get() = lastExcelNameLiveData.value
     val lastExcelNameLiveData = lastExcelLiveData.switchMap {
         liveData(viewModelScope.coroutineContext) {
             emit(it?.name ?: "")

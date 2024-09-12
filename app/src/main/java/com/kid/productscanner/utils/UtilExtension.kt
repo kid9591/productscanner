@@ -27,6 +27,8 @@ fun Row.findIndexOfColumn(columnName: ColumnName): Int {
         ColumnName.ProjectName -> 0
         ColumnName.PartNumber -> 0
         ColumnName.TrackingNumber -> 0
+        ColumnName.QuantityReceived -> 0
+        ColumnName.DateReceived -> 0
     }
 }
 

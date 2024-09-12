@@ -4,5 +4,7 @@ enum class ColumnName {
     BookingNo,
     ProjectName,
     PartNumber,
-    TrackingNumber
+    TrackingNumber,
+    QuantityReceived,
+    DateReceived
 }

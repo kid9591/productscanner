@@ -33,4 +33,7 @@ interface PackDao {
 
     @Query("SELECT * FROM pack WHERE trackingNumber = :trackingNumber")
     fun getPackBelongsTo(trackingNumber: String): List<Pack>
+
+    @Query("SELECT * FROM Pack WHERE quantityReceived IS NOT NULL AND quantityReceived != ''")
+    fun getChangedPacks(): List<Pack>
 }
