@@ -5,12 +5,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
-import android.widget.EditText
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
-import com.kid.productscanner.R
 import com.kid.productscanner.databinding.FragmentSelectTrackingBinding
 import com.kid.productscanner.presentation.application.ScannerApplication
 import com.kid.productscanner.presentation.select_tracking.viewmodel.SelectTrackingViewModel

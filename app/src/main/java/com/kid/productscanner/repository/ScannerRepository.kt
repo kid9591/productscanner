@@ -33,8 +33,4 @@ class ScannerRepository(private val scannerDatabase: ScannerDatabase) {
 
     fun updatePack(pack: Pack) =
         scannerDatabase.packDao().update(pack)
-
-    fun findPackWith(partNumber: String) {
-        TODO("Not yet implemented")
-    }
 }

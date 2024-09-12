@@ -70,19 +70,6 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/text_or" />
 
-        <TextView
-            android:id="@+id/text_processing"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/normal_margin"
-            android:layout_marginTop="@dimen/normal_margin"
-            android:layout_marginEnd="@dimen/normal_margin"
-            android:text="Processing..."
-            android:textSize="@dimen/normal_text"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/button_take_picture" />
-
         <RelativeLayout
             android:id="@+id/relative_loading"
             android:layout_width="match_parent"

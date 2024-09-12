@@ -1,5 +1,6 @@
 package com.kid.productscanner.presentation.select_excel.viewmodel
 
+import android.annotation.SuppressLint
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -92,10 +93,11 @@ class SelectExcelViewModel(private val scannerRepository: ScannerRepository) : V
             emit(it?.name ?: "")
         }
     }
+    @SuppressLint("SimpleDateFormat")
     val lastExcelDateLiveData = lastExcelLiveData.switchMap {
         liveData(viewModelScope.coroutineContext) {
             val date = Date(it?.importMillis ?: 0L)
-            emit(SimpleDateFormat.getDateTimeInstance().format(date))
+            emit(SimpleDateFormat("HH:mm - dd/MM/yyyy").format(date))
         }
     }
 

@@ -7,6 +7,8 @@
             name="viewModel"
             type="com.kid.productscanner.presentation.select_tracking.viewmodel.SelectTrackingViewModel" />
 
+        <import type="android.text.TextUtils"/>
+
         <import type="android.view.View" />
     </data>
 
@@ -52,11 +54,12 @@
             app:layout_constraintTop_toBottomOf="@id/atv_select_tracking" />
 
         <Button
+            android:visibility="@{!TextUtils.isEmpty(viewModel.selectedTrackingNumberLiveData) ? View.VISIBLE : View.GONE}"
             android:id="@+id/button_scan"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="@dimen/normal_margin"
-            android:text="Scan"
+            android:text="Tiếp theo"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/text_shortest_pn" />

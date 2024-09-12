@@ -15,79 +15,132 @@
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:clipChildren="false"
         tools:context=".presentation.select_excel.SelectExcelFragment">
 
-        <LinearLayout
-            android:id="@+id/linear_excel_info_container"
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="@dimen/normal_margin"
-            android:orientation="vertical"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:text="@{viewModel.lastExcelNameLiveData}"
-                android:textSize="@dimen/headline_text"
-                android:visibility="@{viewModel.lastExcelLiveData != null ? View.VISIBLE : View.GONE}"
-                tools:text="abc.xlsx" />
+            <androidx.cardview.widget.CardView
+                android:id="@+id/card_document"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                app:cardCornerRadius="10dp"
+                app:layout_constraintDimensionRatio="W,1.5:1"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintWidth_percent="0.7">
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:text="@{viewModel.lastExcelDateLiveData}"
-                android:textSize="@dimen/normal_text"
-                android:visibility="@{viewModel.lastExcelLiveData != null ? View.VISIBLE : View.GONE}"
-                tools:text="09.05.91" />
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_margin="8dp">
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:text="Chưa có file excel!"
-                android:textSize="@dimen/headline_text"
-                android:visibility="@{viewModel.lastExcelLiveData == null ? View.VISIBLE : View.GONE}" />
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:visibility="@{viewModel.lastExcelLiveData != null ? View.VISIBLE : View.GONE}"
+                        tools:visibility="gone">
 
-        </LinearLayout>
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@{viewModel.lastExcelNameLiveData}"
+                            android:textColor="@color/black"
+                            android:textSize="@dimen/headline_text"
+                            android:visibility="@{viewModel.lastExcelLiveData != null ? View.VISIBLE : View.GONE}"
+                            tools:text="abc.xlsx" />
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@{viewModel.lastExcelDateLiveData}"
+                            android:textSize="@dimen/small_text"
+                            android:visibility="@{viewModel.lastExcelLiveData != null ? View.VISIBLE : View.GONE}"
+                            tools:text="18:59 - 09/05/1991" />
+
+                        <ImageView
+                            android:layout_width="match_parent"
+                            android:layout_height="0dp"
+                            android:layout_weight="1"
+                            android:src="@drawable/ic_article" />
+
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <androidx.appcompat.widget.AppCompatImageButton
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:src="@drawable/ic_file_download" />
+
+                            <androidx.appcompat.widget.AppCompatImageButton
+                                android:id="@+id/button_import_excel"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentEnd="true"
+                                android:layout_gravity="end"
+                                android:src="@drawable/ic_file_open" />
+
+                        </RelativeLayout>
 
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="30dp"
-            android:gravity="center_horizontal"
-            android:orientation="vertical"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/linear_excel_info_container">
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:orientation="vertical"
+                        android:visibility="@{viewModel.lastExcelLiveData == null ? View.VISIBLE : View.GONE}">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Chưa có file excel!"
+                            android:textColor="@color/black"
+                            android:textSize="@dimen/headline_text" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Nhấn để thêm"
+                            android:textSize="@dimen/normal_text" />
+
+                        <androidx.appcompat.widget.AppCompatImageButton
+                            android:id="@+id/button_import_excel_no_file"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:src="@drawable/ic_file_open" />
+
+                    </LinearLayout>
+
+
+                </RelativeLayout>
+
+
+            </androidx.cardview.widget.CardView>
 
             <Button
                 android:id="@+id/button_use_this"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/normal_margin"
+                android:text="Tiếp theo"
                 android:visibility="@{viewModel.lastExcelLiveData != null ? View.VISIBLE : View.GONE}"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Dùng file này" />
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/card_document" />
 
-            <TextView
-                android:visibility="@{viewModel.lastExcelLiveData != null ? View.VISIBLE : View.GONE}"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="hoặc"
-                android:textSize="@dimen/small_text" />
-
-            <Button
-                android:id="@+id/button_import_excel"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Nhập file mới" />
-        </LinearLayout>
-
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
         <RelativeLayout
             android:id="@+id/relative_loading"

@@ -2,6 +2,7 @@ package com.kid.productscanner.presentation.select_excel
 
 import android.app.Activity
 import android.content.ContentResolver
+import android.content.Context
 import android.content.Intent
 import android.database.Cursor
 import android.net.Uri
@@ -59,19 +60,23 @@ class SelectExcelFragment : Fragment() {
 
                             //test de khong bi trung package booking no, sau nen xoa di
                             viewModel.deleteAllExcel()
+                            deleteAppFiles()
                             //test de khong bi trung package booking no, sau nen xoa di
 
                             val shouldReload = viewModel.lastExcelLiveData.value == null
 
                             val excelName = queryFileName(requireContext().contentResolver, uri)
+
+                            copyFileToAppData(uri, excelName)
+
                             val excelId =
                                 viewModel.insertExcel(Excel(excelName, System.currentTimeMillis()))
+
+                            openStreamToInsertPacks(uri, excelId.toInt())
 
                             if (shouldReload) {
                                 viewModel.reloadExcel()
                             }
-
-                            openStreamToInsertPacks(uri, excelId.toInt())
                         }
                         showToast("Nhập file excel thành công!")
                         binding.relativeLoading.isVisible = false
@@ -98,8 +103,6 @@ class SelectExcelFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-//        viewModel.initialize()
-
         // Trong Fragment hoặc Activity
         viewModel.percentLiveData.observe(viewLifecycleOwner) { percent ->
             Log.d("chi.trinh", "percent: ${percent}%")
@@ -109,13 +112,19 @@ class SelectExcelFragment : Fragment() {
             findNavController().navigate(R.id.action_SelectExcel_to_SelectTracking)
         }
 
-        binding.buttonImportExcel.setOnClickListener {
+        val selectExcelCodeBlock = {
             selectExcelResultLauncher.launch(
                 Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
                     addCategory(Intent.CATEGORY_OPENABLE)
                     type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                 }
             )
+        }
+        binding.buttonImportExcel.setOnClickListener {
+            selectExcelCodeBlock()
+        }
+        binding.buttonImportExcelNoFile.setOnClickListener {
+            selectExcelCodeBlock()
         }
     }
 
@@ -130,6 +139,35 @@ class SelectExcelFragment : Fragment() {
         return name
     }
 
+    private fun deleteAppFiles() {
+        val filesDir = requireContext().filesDir
+        if (filesDir.exists()) {
+            filesDir.listFiles()?.forEach { file ->
+                if (file.extension.contains("xls") || file.extension.contains("xlsx")) {
+                    file.delete()
+                }
+            }
+        }
+    }
+
+    private fun copyFileToAppData(sourceUri: Uri, destinationFileName: String) {
+        try {
+            // file sẽ được lưu tại đường dẫn /data/data/<application_id>/files/<destinationFileName>.
+            requireContext().contentResolver.openInputStream(sourceUri)?.use { inputStream ->
+                requireContext().openFileOutput(destinationFileName, Context.MODE_PRIVATE)
+                    .use { outputStream ->
+                        val buffer = ByteArray(1024)
+                        var length: Int
+                        while (inputStream.read(buffer).also { length = it } > 0) {
+                            outputStream.write(buffer, 0, length)
+                        }
+                    }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            showToast("Copy file vào ứng dụng lỗi: ${e.localizedMessage}")
+        }
+    }
 
     private fun openStreamToInsertPacks(uri: Uri, excelId: Int) {
         requireContext().contentResolver.openInputStream(uri)?.use { inputStream ->
