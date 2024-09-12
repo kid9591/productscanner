@@ -130,6 +130,7 @@ class SelectExcelFragment : Fragment() {
         }
         binding.buttonDownloadExcel.setOnClickListener {
             binding.relativeLoading.isVisible = true
+            Log.d(TAG, "start!------------------------------------------------------------")
             lifecycleScope.launch(Dispatchers.IO) {
                 try {
                     val file = File(
@@ -138,13 +139,16 @@ class SelectExcelFragment : Fragment() {
                     )
                     if (file.exists()) {
                         file.inputStream().use { inputStream ->
+                            Log.d(TAG, "file IS opened")
                             WorkbookFactory.create(inputStream)?.use { workbook ->
 
-                                Log.d(TAG, "write excel file stream opened")
+                                Log.d(TAG, "workbook opened")
                                 viewModel.updateChangedPacksTo(workbook)
 
                                 file.outputStream().use { outputStream ->
+                                    Log.d(TAG, "file OS opened")
                                     workbook.write(outputStream)
+                                    Log.d(TAG, "write workbook to file done")
                                 }
 
                                 withContext(Dispatchers.Main) {
@@ -161,6 +165,8 @@ class SelectExcelFragment : Fragment() {
                         showToast(e.localizedMessage ?: "Unknown error")
                     }
                 }
+
+                Log.d(TAG, "all done!------------------------------------------------------------")
             }
         }
     }
