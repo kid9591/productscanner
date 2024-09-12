@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+        <variable
+            name="projectNumber"
+            type="java.lang.String" />
+
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="@dimen/normal_margin">
+
+        <TextView
+            android:id="@+id/text_intro"
+            app:layout_constraintTop_toTopOf="parent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="@dimen/normal_text"
+            android:text="@{`Gói hàng thuộc dự án:\n` + projectNumber}"/>
+
+        <EditText
+            android:inputType="number"
+            android:id="@+id/edit_text_quantity"
+            app:layout_constraintTop_toBottomOf="@+id/text_intro"
+            android:layout_marginTop="@dimen/normal_margin"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Nhập số lượng" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</layout>

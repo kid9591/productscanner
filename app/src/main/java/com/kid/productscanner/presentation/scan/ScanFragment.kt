@@ -4,7 +4,6 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
-import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
@@ -15,20 +14,25 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.core.content.FileProvider
+import androidx.core.view.isVisible
+import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.navArgs
-import com.google.android.datatransport.backend.cct.BuildConfig
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
+import com.kid.productscanner.R
+import com.kid.productscanner.databinding.DialogInputQuantityBinding
 import com.kid.productscanner.databinding.FragmentScanBinding
 import com.kid.productscanner.presentation.application.ScannerApplication
 import com.kid.productscanner.presentation.scan.viewmodel.ScanViewModel
 import com.kid.productscanner.presentation.scan.viewmodel.ScanViewModelFactory
 import com.kid.productscanner.repository.ScannerRepository
+import com.kid.productscanner.repository.cache.room.entity.Pack
 import com.kid.productscanner.utils.showToast
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -54,7 +58,7 @@ class ScanFragment : Fragment() {
         ScanViewModelFactory(repository)
     }
 
-    val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
+    private val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
 
     private lateinit var currentPhotoPath: String
 
@@ -77,12 +81,10 @@ class ScanFragment : Fragment() {
 
         binding.atvSelectPartNumber.apply {
             setOnItemClickListener { parent, view, position, id ->
-                val selectedItem = parent.getItemAtPosition(position) as String
-
-                //TODO: show dialog input quantity
-
-//                binding.textShortestPn.text = "Đang tìm kiếm Part Number ngắn nhất..."
-//                viewModel.findShortestPartNumber(selectedItem)
+                val selectedPartNumber = parent.getItemAtPosition(position) as String
+                findPackFrom(selectedPartNumber)?.let { selectedPack ->
+                    showDialogPackFound(selectedPack)
+                } ?: showToast("Không tìm thấy thông tin gói hàng này!")
             }
             setOnFocusChangeListener { _, focus ->
                 if (focus) {
@@ -90,7 +92,15 @@ class ScanFragment : Fragment() {
                 }
             }
         }
-        fillPartNumbersToDropdown()
+        viewModel.packsBelongsToTrackingNumberLiveData.observe(viewLifecycleOwner) { packs ->
+            val adapter = ArrayAdapter(
+                requireContext(),
+                android.R.layout.simple_spinner_dropdown_item,
+                packs.map { it.partNumber }
+            )
+            binding.atvSelectPartNumber.setAdapter(adapter)
+        }
+        viewModel.getPackBelongsTo(args.trackingNumber)
 
         binding.buttonClear.setOnClickListener {
             binding.atvSelectPartNumber.setText("")
@@ -102,20 +112,6 @@ class ScanFragment : Fragment() {
 
     }
 
-    private fun fillPartNumbersToDropdown() {
-        lifecycleScope.launch {
-            val partNumbers = viewModel.getPartNumbersOf(args.trackingNumber)
-            withContext(Dispatchers.Main) {
-                val adapter = ArrayAdapter(
-                    requireContext(),
-                    android.R.layout.simple_spinner_dropdown_item,
-                    partNumbers
-                )
-                binding.atvSelectPartNumber.setAdapter(adapter)
-            }
-        }
-    }
-
     private val requestPermissionLauncher =
         registerForActivityResult(
             ActivityResultContracts.RequestPermission()
@@ -125,7 +121,6 @@ class ScanFragment : Fragment() {
                     takePictureResultLauncher.launch(
                         Intent(MediaStore.ACTION_IMAGE_CAPTURE).apply {
                             putExtra(MediaStore.EXTRA_OUTPUT, photoUri)
-//                            flags = Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION
                         }
                     )
                 } ?: run {
@@ -141,13 +136,79 @@ class ScanFragment : Fragment() {
     private val takePictureResultLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == Activity.RESULT_OK) {
+
+                binding.relativeLoading.isVisible = true
+
+                Log.d(TAG, "shortest: ${args.shortestPartNumber}")
+
                 val imageUri = Uri.fromFile(File(currentPhotoPath))
-                detectTexts(imageUri) { foundText ->
-                    Log.d(TAG, "foundText: $foundText")
-//                    findProjectNumberFrom(elementText)
+                detectTexts(imageUri) { foundTexts ->
+
+                    lifecycleScope.launch {
+                        run breaking@{
+                            foundTexts.forEach { foundText ->
+                                val pack = if (foundText.length >= args.shortestPartNumber) {
+                                    Log.d(TAG, "findingPack: $foundText")
+                                    findPackFrom(foundText)
+                                } else null
+                                if (pack != null) {
+                                    binding.relativeLoading.isVisible = false
+                                    showDialogPackFound(pack)
+                                    return@breaking
+                                }
+                            }
+                            withContext(Dispatchers.Main) {
+                                binding.relativeLoading.isVisible = false
+                                showToast("Không tìm thấy gói hàng!")
+                            }
+                        }
+                    }
                 }
             }
         }
+
+    private fun showDialogPackFound(pack: Pack) {
+        val builder = AlertDialog.Builder(requireContext())
+        val binding = DataBindingUtil.inflate<DialogInputQuantityBinding>(
+            LayoutInflater.from(requireContext()),
+            R.layout.dialog_input_quantity,
+            null,
+            false
+        )
+        binding.projectNumber = pack.projectName
+        //sửa lại pack đã điền
+        if (pack.quantityReceived.isNotEmpty()) {
+            binding.editTextQuantity.setText(pack.quantityReceived)
+        }
+
+        builder.setCancelable(false)
+        builder.setTitle("Tìm thấy!")
+        builder.setView(binding.root)
+        builder.setPositiveButton("OK") { dialog, _ ->
+            if (binding.editTextQuantity.text.toString().isEmpty()) {
+                showToast("Hãy nhập số lượng gói hàng")
+            } else {
+                lifecycleScope.launch(Dispatchers.IO) {
+                    pack.apply {
+                        quantityReceived = binding.editTextQuantity.text.toString()
+                        dateReceivedMillis = System.currentTimeMillis()
+                    }
+                    if (viewModel.updatePack(pack)) {
+                        withContext(Dispatchers.Main) {
+                            showToast("Thành công!")
+                            dialog.dismiss()
+                        }
+                    }
+                }
+            }
+        }
+        builder.setNegativeButton("Cancel") { dialog, _ ->
+            dialog.dismiss()
+        }
+
+        val dialog = builder.create()
+        dialog.show()
+    }
 
     @SuppressLint("SimpleDateFormat")
     private fun createFileToSaveImage(): Uri? {
@@ -165,6 +226,8 @@ class ScanFragment : Fragment() {
                 currentPhotoPath = absolutePath
             }
 
+            Log.d(TAG, "external: ${Environment.getExternalStorageDirectory().absolutePath}")
+
             return FileProvider.getUriForFile(
                 requireContext().applicationContext,
                 "com.kid.productscanner.fileprovider",
@@ -176,37 +239,42 @@ class ScanFragment : Fragment() {
         }
     }
 
-    private fun detectTexts(fileUri: Uri, foundTextCallback: ((String) -> Unit)) {
+    private fun detectTexts(fileUri: Uri, foundTextsCallback: ((List<String>) -> Unit)) {
         val image = InputImage.fromFilePath(requireContext(), fileUri)
         recognizer.process(image)
             .addOnSuccessListener { result ->
                 val resultText = result.text
                 Log.d(TAG, "resultText: $resultText")
+
+                val texts = mutableListOf<String>()
+
                 for (block in result.textBlocks) {
                     val blockText = block.text
-                    Log.d(TAG, "blockText: $blockText")
+//                    Log.d(TAG, "blockText: $blockText")
                     val blockCornerPoints = block.cornerPoints
                     val blockFrame = block.boundingBox
                     for (line in block.lines) {
                         val lineText = line.text
-                        Log.d(TAG, "lineText: $lineText")
+//                        Log.d(TAG, "lineText: $lineText")
                         val lineCornerPoints = line.cornerPoints
                         val lineFrame = line.boundingBox
                         for (element in line.elements) {
                             val elementText = element.text
-                            foundTextCallback(elementText)
-                            val elementCornerPoints = element.cornerPoints
-                            val elementFrame = element.boundingBox
+//                            val elementCornerPoints = element.cornerPoints
+//                            val elementFrame = element.boundingBox
+                            texts.add(elementText)
                         }
                     }
                 }
+
+                foundTextsCallback(texts)
             }
             .addOnFailureListener { e ->
                 showToast("Fail to recognize text: ${e.localizedMessage}")
             }
     }
 
-    private fun findProjectNumberFrom(partNumber: String): String {
-        return ""
+    private fun findPackFrom(partNumber: String): Pack? {
+        return viewModel.findPackWith(partNumber)
     }
 }

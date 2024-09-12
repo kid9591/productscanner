@@ -72,7 +72,8 @@ class SelectTrackingFragment : Fragment() {
         binding.buttonScan.setOnClickListener {
             val action =
                 SelectTrackingFragmentDirections.actionSelectTrackingFragmentToScanFragment(
-                    viewModel.selectedTrackingNumber ?: ""
+                    viewModel.selectedTrackingNumber ?: "",
+                    viewModel.shortestPartNumber?.length ?: 1
                 )
             findNavController().navigate(action)
         }

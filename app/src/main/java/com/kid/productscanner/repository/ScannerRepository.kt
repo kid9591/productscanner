@@ -28,6 +28,13 @@ class ScannerRepository(private val scannerDatabase: ScannerDatabase) {
     fun findShortestPartNumber(trackingNumber: String): String =
         scannerDatabase.packDao().findShortestPartNumber(trackingNumber)
 
-    fun getPartNumbersOf(trackingNumber: String): List<String> =
-        scannerDatabase.packDao().getPartNumbersOf(trackingNumber)
+    fun getPackBelongsTo(trackingNumber: String): List<Pack> =
+        scannerDatabase.packDao().getPackBelongsTo(trackingNumber)
+
+    fun updatePack(pack: Pack) =
+        scannerDatabase.packDao().update(pack)
+
+    fun findPackWith(partNumber: String) {
+        TODO("Not yet implemented")
+    }
 }

@@ -40,5 +40,8 @@
         <argument
             android:name="trackingNumber"
             app:argType="string" />
+        <argument
+            android:name="shortestPartNumber"
+            app:argType="integer" />
     </fragment>
 </navigation>

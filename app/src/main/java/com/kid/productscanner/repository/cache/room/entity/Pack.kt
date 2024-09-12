@@ -18,7 +18,7 @@ data class Pack(
     val projectName: String,
     val partNumber: String,
     val trackingNumber: String,
-    val quantityReceived: String,
-    val dateReceivedMillis: Long,
+    var quantityReceived: String,
+    var dateReceivedMillis: Long,
     val excelId: Int
 )

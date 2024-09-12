@@ -1,18 +1,12 @@
 package com.kid.productscanner.presentation.select_tracking.viewmodel
 
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.liveData
-import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
 import com.kid.productscanner.repository.ScannerRepository
-import com.kid.productscanner.repository.cache.room.entity.Excel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.util.Date
 
 class SelectTrackingViewModel(private val scannerRepository: ScannerRepository) : ViewModel() {
 
@@ -34,6 +28,9 @@ class SelectTrackingViewModel(private val scannerRepository: ScannerRepository) 
     val selectedTrackingNumber
         get() = selectedTrackingNumberLiveData.value
     var selectedTrackingNumberLiveData = MutableLiveData("")
+
+    val shortestPartNumber
+        get() = shortestPartNumberLiveData.value
     var shortestPartNumberLiveData = MutableLiveData("")
 
 }

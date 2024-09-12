@@ -18,7 +18,7 @@ interface PackDao {
 //    fun delete(excel: Excel)
 
     @Update
-    fun update(pack: Pack)
+    fun update(pack: Pack): Int
 
     @Insert
     fun insertAll(packs: List<Pack>)
@@ -31,6 +31,6 @@ interface PackDao {
             "LIMIT 1")
     fun findShortestPartNumber(trackingNumber: String): String
 
-    @Query("SELECT partNumber FROM pack WHERE trackingNumber = :trackingNumber")
-    fun getPartNumbersOf(trackingNumber: String): List<String>
+    @Query("SELECT * FROM pack WHERE trackingNumber = :trackingNumber")
+    fun getPackBelongsTo(trackingNumber: String): List<Pack>
 }
