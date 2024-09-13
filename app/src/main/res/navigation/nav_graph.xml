@@ -18,6 +18,9 @@
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <action
+            android:id="@+id/action_SelectExcelFragment_to_scanShortFlowFragment"
+            app:destination="@id/scanShortFlowFragment" />
     </fragment>
 
     <fragment
@@ -43,5 +46,26 @@
         <argument
             android:name="shortestPartNumber"
             app:argType="integer" />
+        <action
+            android:id="@+id/action_scanFragment_to_SelectExcelFragment"
+            app:destination="@id/SelectExcelFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim"
+            app:popUpTo="@id/SelectExcelFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/scanShortFlowFragment"
+        android:name="com.kid.productscanner.presentation.scan_short_flow.ScanShortFlowFragment"
+        android:label="ScanShortFlowFragment" >
+        <action
+            android:id="@+id/action_scanShortFlowFragment_to_SelectExcelFragment"
+            app:destination="@id/SelectExcelFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim"
+            app:popUpTo="@id/SelectExcelFragment" />
     </fragment>
 </navigation>

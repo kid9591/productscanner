@@ -1,4 +1,4 @@
-package com.kid.productscanner.presentation.scan
+package com.kid.productscanner.presentation.scan_short_flow
 
 import android.Manifest
 import android.annotation.SuppressLint
@@ -7,6 +7,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
+import android.os.Handler
 import android.provider.MediaStore
 import android.util.Log
 import android.view.LayoutInflater
@@ -22,13 +23,12 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
-import androidx.navigation.fragment.navArgs
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import com.kid.productscanner.R
 import com.kid.productscanner.databinding.DialogInputQuantityBinding
-import com.kid.productscanner.databinding.FragmentScanBinding
+import com.kid.productscanner.databinding.FragmentScanShortFlowBinding
 import com.kid.productscanner.presentation.application.ScannerApplication
 import com.kid.productscanner.presentation.scan.viewmodel.ScanViewModel
 import com.kid.productscanner.presentation.scan.viewmodel.ScanViewModelFactory
@@ -36,6 +36,7 @@ import com.kid.productscanner.repository.ScannerRepository
 import com.kid.productscanner.repository.cache.room.entity.Pack
 import com.kid.productscanner.utils.showToast
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -45,13 +46,11 @@ import java.util.Date
 /**
  * A simple [Fragment] subclass as the second destination in the navigation.
  */
-class ScanFragment : Fragment() {
+class ScanShortFlowFragment : Fragment() {
 
-    private lateinit var binding: FragmentScanBinding
+    private lateinit var binding: FragmentScanShortFlowBinding
 
     private val TAG: String = "chi.trinh"
-
-    private val args: ScanFragmentArgs by navArgs()
 
     private val viewModel: ScanViewModel by viewModels {
         val repository =
@@ -68,8 +67,8 @@ class ScanFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
 
-        binding = FragmentScanBinding.inflate(inflater, container, false)
-        binding.viewModel = this@ScanFragment.viewModel
+        binding = FragmentScanShortFlowBinding.inflate(inflater, container, false)
+        binding.viewModel = this@ScanShortFlowFragment.viewModel
         binding.lifecycleOwner = viewLifecycleOwner
         return binding.root
 
@@ -78,12 +77,10 @@ class ScanFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        viewModel.setSelectedTrackingNumber(args.trackingNumber)
-
         binding.atvSelectPartNumber.apply {
             setOnItemClickListener { parent, view, position, id ->
                 val selectedPartNumber = parent.getItemAtPosition(position) as String
-                viewModel.findPackWith(selectedPartNumber)?.let { selectedPack ->
+                viewModel.findInAllPacksWith(selectedPartNumber)?.let { selectedPack ->
                     showDialogPackFound(selectedPack)
                 } ?: showToast("Không tìm thấy thông tin gói hàng này!")
             }
@@ -93,7 +90,8 @@ class ScanFragment : Fragment() {
                 }
             }
         }
-        viewModel.packsBelongsToTrackingNumberLiveData.observe(viewLifecycleOwner) { packs ->
+        viewModel.allPacksLiveData.observe(viewLifecycleOwner) { packs ->
+            Log.d(TAG, "get all packs done!")
             val adapter = ArrayAdapter(
                 requireContext(),
                 android.R.layout.simple_spinner_dropdown_item,
@@ -101,7 +99,9 @@ class ScanFragment : Fragment() {
             )
             binding.atvSelectPartNumber.setAdapter(adapter)
         }
-        viewModel.getPackBelongsTo(args.trackingNumber)
+        viewModel.getAllPacks()
+
+        viewModel.findShortestPartNumber()
 
         binding.buttonClear.setOnClickListener {
             binding.atvSelectPartNumber.setText("")
@@ -112,7 +112,12 @@ class ScanFragment : Fragment() {
         }
 
         binding.buttonDone.setOnClickListener {
-            findNavController().navigate(R.id.action_scanFragment_to_SelectExcelFragment)
+            findNavController().navigate(R.id.action_scanShortFlowFragment_to_SelectExcelFragment)
+        }
+
+        lifecycleScope.launch {
+            delay(200)
+            binding.buttonTakePicture.performClick()
         }
     }
 
@@ -149,9 +154,9 @@ class ScanFragment : Fragment() {
                     lifecycleScope.launch {
                         run breaking@{
                             foundTexts.forEach { foundText ->
-                                val pack = if (foundText.length >= args.shortestPartNumber) {
+                                val pack = if (foundText.length >= viewModel.shortestPartNumber.length) {
                                     Log.d(TAG, "findingPack: $foundText")
-                                    viewModel.findPackWith(foundText)
+                                    viewModel.findInAllPacksWith(foundText)
                                 } else null
                                 if (pack != null) {
                                     binding.relativeLoading.isVisible = false
@@ -197,7 +202,7 @@ class ScanFragment : Fragment() {
                     if (viewModel.updatePack(pack)) {
                         withContext(Dispatchers.Main) {
                             showToast("Thành công!")
-                            this@ScanFragment.binding.buttonTakePicture.performClick()
+                            this@ScanShortFlowFragment.binding.buttonTakePicture.performClick()
                             dialog.dismiss()
                         }
                     }

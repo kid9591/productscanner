@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:app="http://schemas.android.com/apk/res-auto">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <data>
 
@@ -10,22 +12,10 @@
         <import type="android.view.View" />
     </data>
 
-    <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools"
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         tools:context=".presentation.scan.ScanFragment">
-
-        <TextView
-            android:id="@+id/text_selected_tracking_number"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="@dimen/normal_margin"
-            android:text="@{`Đang tìm trong tracking number:\n` + viewModel.selectedTrackingNumberLiveData}"
-            android:textSize="@dimen/normal_text"
-            app:layout_constraintTop_toTopOf="parent"
-            tools:text="abc" />
-
 
         <TextView
             android:id="@+id/text_guide"
@@ -36,7 +26,7 @@
             android:layout_marginEnd="@dimen/normal_margin"
             android:text="(* Lưu ý: Nếu chụp ảnh không tìm thấy thì có thể nhập part number vào đây để tìm)"
             android:textSize="@dimen/small_text"
-            app:layout_constraintTop_toBottomOf="@+id/text_selected_tracking_number" />
+            app:layout_constraintTop_toTopOf="parent" />
 
         <AutoCompleteTextView
             android:id="@+id/atv_select_part_number"
@@ -47,7 +37,7 @@
             android:hint="Nhập part number..."
             app:layout_constraintEnd_toStartOf="@+id/button_clear"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/text_guide" />
+            app:layout_constraintTop_toBottomOf="@+id/text_guide" />
 
         <Button
             android:id="@+id/button_clear"
@@ -81,6 +71,16 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/text_or" />
 
+        <Button
+            android:id="@+id/button_done"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/large_margin_50"
+            android:text="Xong!"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+
         <RelativeLayout
             android:id="@+id/relative_loading"
             android:layout_width="match_parent"
@@ -94,16 +94,6 @@
                 android:layout_centerInParent="true"
                 android:indeterminate="true" />
         </RelativeLayout>
-
-        <Button
-            android:id="@+id/button_done"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/large_margin_50"
-            android:text="Xong!"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

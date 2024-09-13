@@ -31,9 +31,17 @@ interface PackDao {
             "LIMIT 1")
     fun findShortestPartNumber(trackingNumber: String): String
 
+    @Query("SELECT partNumber FROM pack\n" +
+            "ORDER BY LENGTH(partNumber) ASC\n" +
+            "LIMIT 1")
+    fun findShortestPartNumber(): String
+
     @Query("SELECT * FROM pack WHERE trackingNumber = :trackingNumber")
     fun getPackBelongsTo(trackingNumber: String): List<Pack>
 
     @Query("SELECT * FROM Pack WHERE quantityReceived IS NOT NULL AND quantityReceived != ''")
     fun getChangedPacks(): List<Pack>
+
+    @Query("SELECT * FROM Pack")
+    fun getAllPacks(): List<Pack>
 }

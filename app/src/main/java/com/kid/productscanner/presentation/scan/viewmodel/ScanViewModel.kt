@@ -1,5 +1,6 @@
 package com.kid.productscanner.presentation.scan.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -10,12 +11,10 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 
 class ScanViewModel(private val scannerRepository: ScannerRepository) : ViewModel() {
-    fun getPackBelongsTo(trackingNumber: String) =
-        viewModelScope.launch(Dispatchers.IO) {
-            val packs = scannerRepository.getPackBelongsTo(trackingNumber)
-            packsBelongsToTrackingNumberLiveData.postValue(packs)
-        }
 
+    val selectedTrackingNumber
+        get() = selectedTrackingNumberLiveData.value
+    val selectedTrackingNumberLiveData = MutableLiveData("")
     fun setSelectedTrackingNumber(trackingNumber: String) {
         selectedTrackingNumberLiveData.value = trackingNumber
     }
@@ -24,6 +23,16 @@ class ScanViewModel(private val scannerRepository: ScannerRepository) : ViewMode
         viewModelScope.async(Dispatchers.IO) {
             scannerRepository.updatePack(pack) == 1
         }.await()
+
+    val packsBelongsToTrackingNumber
+        get() = packsBelongsToTrackingNumberLiveData.value
+    val packsBelongsToTrackingNumberLiveData = MutableLiveData<List<Pack>>()
+
+    fun getPackBelongsTo(trackingNumber: String) =
+        viewModelScope.launch(Dispatchers.IO) {
+            val packs = scannerRepository.getPackBelongsTo(trackingNumber)
+            packsBelongsToTrackingNumberLiveData.postValue(packs)
+        }
 
     fun findPackWith(partNumber: String): Pack? =
         packsBelongsToTrackingNumber?.firstOrNull { it.partNumber.trim() == partNumber.trim() }
@@ -34,11 +43,29 @@ class ScanViewModel(private val scannerRepository: ScannerRepository) : ViewMode
                 partNumber.replace("0", "O").trim().lowercase() == it.partNumber.trim().lowercase()
             }
 
-    val selectedTrackingNumber
-        get() = selectedTrackingNumberLiveData.value
-    val selectedTrackingNumberLiveData = MutableLiveData("")
+    fun findInAllPacksWith(partNumber: String): Pack? =
+        allPacks?.firstOrNull { it.partNumber.trim() == partNumber.trim() }
+            ?: allPacks?.firstOrNull {
+                partNumber.replace("O", "0").trim().lowercase() == it.partNumber.trim().lowercase()
+            }
+            ?: allPacks?.firstOrNull {
+                partNumber.replace("0", "O").trim().lowercase() == it.partNumber.trim().lowercase()
+            }
 
-    val packsBelongsToTrackingNumber
-        get() = packsBelongsToTrackingNumberLiveData.value
-    val packsBelongsToTrackingNumberLiveData = MutableLiveData<List<Pack>>()
+    val allPacks
+        get() = allPacksLiveData.value
+    val allPacksLiveData = MutableLiveData<List<Pack>>()
+
+    fun getAllPacks() =
+        viewModelScope.launch(Dispatchers.IO) {
+            val packs = scannerRepository.getAllPacks()
+            allPacksLiveData.postValue(packs)
+        }
+
+    var shortestPartNumber: String = ""
+    fun findShortestPartNumber() =
+        viewModelScope.launch(Dispatchers.IO) {
+            shortestPartNumber = scannerRepository.findShortestPartNumber()
+            Log.d("chi.trinh", "findShortestPartNumber: $shortestPartNumber")
+        }
 }

@@ -112,6 +112,7 @@ class SelectExcelFragment : Fragment() {
 
         binding.buttonUseThis.setOnClickListener {
             findNavController().navigate(R.id.action_SelectExcel_to_SelectTracking)
+//            findNavController().navigate(R.id.action_SelectExcelFragment_to_scanShortFlowFragment)
         }
 
         val selectExcelCodeBlock = {

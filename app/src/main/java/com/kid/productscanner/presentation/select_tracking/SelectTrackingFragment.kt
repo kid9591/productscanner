@@ -1,10 +1,13 @@
 package com.kid.productscanner.presentation.select_tracking
 
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.InputMethodManager
 import android.widget.ArrayAdapter
+import androidx.core.content.ContextCompat.getSystemService
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
@@ -15,6 +18,7 @@ import com.kid.productscanner.presentation.select_tracking.viewmodel.SelectTrack
 import com.kid.productscanner.presentation.select_tracking.viewmodel.SelectTrackingViewModelFactory
 import com.kid.productscanner.repository.ScannerRepository
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -54,6 +58,11 @@ class SelectTrackingFragment : Fragment() {
 
                 binding.textShortestPn.text = "Đang tìm kiếm Part Number ngắn nhất..."
                 viewModel.findShortestPartNumber(selectedItem)
+
+                lifecycleScope.launch {
+                    delay(100)
+                    binding.buttonScan.performClick()
+                }
             }
             setOnFocusChangeListener { _, focus ->
                 if (focus) {
@@ -65,6 +74,13 @@ class SelectTrackingFragment : Fragment() {
 
         binding.buttonClear.setOnClickListener {
             binding.atvSelectTracking.setText("")
+        }
+        lifecycleScope.launch {
+            delay(100)
+            binding.atvSelectTracking.requestFocus()
+            val imm =
+                requireActivity().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+            imm.showSoftInput(binding.atvSelectTracking, InputMethodManager.SHOW_IMPLICIT)
         }
 
         binding.buttonScan.setOnClickListener {
