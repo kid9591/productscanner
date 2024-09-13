@@ -1,12 +1,19 @@
 package com.kid.productscanner.utils
 
-import android.util.Log
+import android.annotation.SuppressLint
+import android.content.Context
+import android.net.Uri
 import android.widget.Toast
 import androidx.annotation.StringRes
+import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
+import com.kid.productscanner.BuildConfig
 import com.kid.productscanner.common.ColumnName
 import org.apache.poi.ss.usermodel.Row
 import org.apache.poi.ss.usermodel.Sheet
+import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
 
 fun Fragment.showToast(message: String, duration: Int = Toast.LENGTH_LONG) {
     Toast.makeText(requireContext(), message, duration).show()
@@ -39,4 +46,30 @@ fun Sheet.findLastNonEmptyRowIndex(): Int {
         }
     }
     return 0
+}
+
+fun Context.getExcelFilesDir(): File =
+    File(filesDir, "Excels").apply { if (!this.exists()) mkdirs() }
+
+@SuppressLint("SimpleDateFormat")
+fun Context.createFileToSaveImage(): Pair<String, Uri>? {
+    return try {
+        // Tạo tên file ảnh
+        val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())
+        val file =
+            File.createTempFile("Scan_${timeStamp}_", ".jpg", File(filesDir, "ScanImages").apply {
+                if (!exists()) {
+                    mkdirs()
+                }
+            })
+
+        return Pair(
+            file.absolutePath, FileProvider.getUriForFile(
+                applicationContext, "${BuildConfig.APPLICATION_ID}.fileprovider", file
+            )
+        )
+    } catch (e: Exception) {
+        e.printStackTrace()
+        null
+    }
 }

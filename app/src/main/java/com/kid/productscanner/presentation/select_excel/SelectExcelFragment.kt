@@ -20,6 +20,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import com.kid.productscanner.BuildConfig
 import com.kid.productscanner.R
 import com.kid.productscanner.databinding.FragmentSelectExcelBinding
 import com.kid.productscanner.presentation.application.ScannerApplication
@@ -27,6 +28,7 @@ import com.kid.productscanner.presentation.select_excel.viewmodel.SelectExcelVie
 import com.kid.productscanner.presentation.select_excel.viewmodel.SelectExcelViewModelFactory
 import com.kid.productscanner.repository.ScannerRepository
 import com.kid.productscanner.repository.cache.room.entity.Excel
+import com.kid.productscanner.utils.getExcelFilesDir
 import com.kid.productscanner.utils.showToast
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -111,8 +113,11 @@ class SelectExcelFragment : Fragment() {
         }
 
         binding.buttonUseThis.setOnClickListener {
-            findNavController().navigate(R.id.action_SelectExcel_to_SelectTracking)
-//            findNavController().navigate(R.id.action_SelectExcelFragment_to_scanShortFlowFragment)
+            if (BuildConfig.FLAVOR == "normal") {
+                findNavController().navigate(R.id.action_SelectExcel_to_SelectTracking)
+            } else {
+                findNavController().navigate(R.id.action_SelectExcelFragment_to_scanShortFlowFragment)
+            }
         }
 
         val selectExcelCodeBlock = {
@@ -135,8 +140,8 @@ class SelectExcelFragment : Fragment() {
             lifecycleScope.launch(Dispatchers.IO) {
                 try {
                     val file = File(
-                        requireContext().filesDir,
-                        viewModel.lastExcelName ?: "Not existed file.xxx"
+                        requireContext().getExcelFilesDir(),
+                        viewModel.lastExcelName ?: throw Exception("Not existed file.xxx")
                     )
                     if (file.exists()) {
                         file.inputStream().use { inputStream ->
@@ -175,7 +180,7 @@ class SelectExcelFragment : Fragment() {
     private fun shareFile(file: File) {
         val uri = FileProvider.getUriForFile(
             requireContext(),
-            "com.kid.productscanner.fileprovider", // Thay thế bằng authority trong file provider của bạn
+            "${BuildConfig.APPLICATION_ID}.fileprovider", // Thay thế bằng authority trong file provider của bạn
             file
         )
 
@@ -200,7 +205,7 @@ class SelectExcelFragment : Fragment() {
     }
 
     private fun deleteAppFiles() {
-        val filesDir = requireContext().filesDir
+        val filesDir = requireContext().getExcelFilesDir()
         if (filesDir.exists()) {
             filesDir.listFiles()?.forEach { file ->
                 if (file.extension.contains("xls") || file.extension.contains("xlsx")) {
@@ -214,14 +219,13 @@ class SelectExcelFragment : Fragment() {
         try {
             // file sẽ được lưu tại đường dẫn /data/data/<application_id>/files/<destinationFileName>.
             requireContext().contentResolver.openInputStream(sourceUri)?.use { inputStream ->
-                requireContext().openFileOutput(destinationFileName, Context.MODE_PRIVATE)
-                    .use { outputStream ->
-                        val buffer = ByteArray(1024)
-                        var length: Int
-                        while (inputStream.read(buffer).also { length = it } > 0) {
-                            outputStream.write(buffer, 0, length)
-                        }
+                File(requireContext().getExcelFilesDir(), destinationFileName).outputStream().use { outputStream ->
+                    val buffer = ByteArray(1024)
+                    var length: Int
+                    while (inputStream.read(buffer).also { length = it } > 0) {
+                        outputStream.write(buffer, 0, length)
                     }
+                }
             }
         } catch (e: Exception) {
             e.printStackTrace()

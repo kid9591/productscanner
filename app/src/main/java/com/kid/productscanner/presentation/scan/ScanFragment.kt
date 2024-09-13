@@ -19,7 +19,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.FileProvider
 import androidx.core.view.isVisible
-import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
@@ -32,9 +31,9 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
+import com.kid.productscanner.BuildConfig
 import com.kid.productscanner.R
 import com.kid.productscanner.databinding.DialogInputQuantitiesBinding
-import com.kid.productscanner.databinding.DialogInputQuantityBinding
 import com.kid.productscanner.databinding.FragmentScanBinding
 import com.kid.productscanner.presentation.application.ScannerApplication
 import com.kid.productscanner.presentation.input_quantity.adapter.PacksFoundAdapter
@@ -42,6 +41,7 @@ import com.kid.productscanner.presentation.scan.viewmodel.ScanViewModel
 import com.kid.productscanner.presentation.scan.viewmodel.ScanViewModelFactory
 import com.kid.productscanner.repository.ScannerRepository
 import com.kid.productscanner.repository.cache.room.entity.Pack
+import com.kid.productscanner.utils.createFileToSaveImage
 import com.kid.productscanner.utils.showToast
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -135,12 +135,11 @@ class ScanFragment : Fragment() {
             ActivityResultContracts.RequestPermission()
         ) { isGranted: Boolean ->
             if (isGranted) {
-                createFileToSaveImage()?.let { photoUri ->
-                    takePictureResultLauncher.launch(
-                        Intent(MediaStore.ACTION_IMAGE_CAPTURE).apply {
-                            putExtra(MediaStore.EXTRA_OUTPUT, photoUri)
-                        }
-                    )
+                requireContext().createFileToSaveImage()?.let { pairs ->
+                    currentPhotoPath = pairs.first
+                    takePictureResultLauncher.launch(Intent(MediaStore.ACTION_IMAGE_CAPTURE).apply {
+                        putExtra(MediaStore.EXTRA_OUTPUT, pairs.second)
+                    })
                 } ?: run {
                     showToast("Khong the tao file de luu anh")
                 }
@@ -252,35 +251,6 @@ class ScanFragment : Fragment() {
             dialog.window?.clearFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM)
         }
         dialog.show()
-    }
-
-    @SuppressLint("SimpleDateFormat")
-    private fun createFileToSaveImage(): Uri? {
-        return try {
-            // Tạo tên file ảnh
-            val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())
-            val storageDir: File? =
-                requireContext().getExternalFilesDir(Environment.DIRECTORY_PICTURES)
-            val file = File.createTempFile(
-                "JPEG_${timeStamp}_", /* prefix */
-                ".jpg", /* suffix */
-                storageDir /* directory */
-            ).apply {
-                // Lưu đường dẫn file để sử dụng sau
-                currentPhotoPath = absolutePath
-            }
-
-            Log.d(TAG, "external: ${Environment.getExternalStorageDirectory().absolutePath}")
-
-            return FileProvider.getUriForFile(
-                requireContext().applicationContext,
-                "com.kid.productscanner.fileprovider",
-                file
-            )
-        } catch (e: Exception) {
-            e.printStackTrace()
-            null
-        }
     }
 
     private fun detectTexts(fileUri: Uri, foundTextsCallback: ((List<String>) -> Unit)) {

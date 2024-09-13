@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths>
-    <external-path
+    <files-path
         name="scan_images"
-        path="Android/data/com.kid.productscanner/files/Pictures" />
-    <files-path name="excel_files" path="." />
+        path="./ScanImages" />
+    <files-path
+        name="excels"
+        path="./Excels" />
 </paths>

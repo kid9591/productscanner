@@ -9,8 +9,9 @@ android {
     namespace 'com.kid.productscanner'
     compileSdk 34
 
+    flavorDimensions = ["flow"]
+
     defaultConfig {
-        applicationId "com.kid.productscanner"
         minSdk 26
         targetSdk 34
         versionCode 1
@@ -31,6 +32,20 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+
+    productFlavors {
+        quick {
+            applicationId = "com.kid.productscanner.quick"
+            resValue("string","app_name","ProductScannerQuick")
+            dimension = "flow"
+        }
+        normal {
+            applicationId = "com.kid.productscanner.normal"
+            resValue("string","app_name","ProductScanner")
+            dimension = "flow"
+        }
+    }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
@@ -39,6 +54,7 @@ android {
         jvmTarget = '1.8'
     }
     buildFeatures {
+        buildConfig true
         viewBinding true
         dataBinding true
     }

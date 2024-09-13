@@ -1,5 +1,6 @@
 package com.kid.productscanner.presentation.scan_short_flow
 
+import com.kid.productscanner.BuildConfig
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
@@ -39,6 +40,7 @@ import com.kid.productscanner.presentation.scan.viewmodel.ScanViewModel
 import com.kid.productscanner.presentation.scan.viewmodel.ScanViewModelFactory
 import com.kid.productscanner.repository.ScannerRepository
 import com.kid.productscanner.repository.cache.room.entity.Pack
+import com.kid.productscanner.utils.createFileToSaveImage
 import com.kid.productscanner.utils.showToast
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -133,9 +135,10 @@ class ScanShortFlowFragment : Fragment() {
         ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
         if (isGranted) {
-            createFileToSaveImage()?.let { photoUri ->
+            requireContext().createFileToSaveImage()?.let { pairs ->
+                currentPhotoPath = pairs.first
                 takePictureResultLauncher.launch(Intent(MediaStore.ACTION_IMAGE_CAPTURE).apply {
-                    putExtra(MediaStore.EXTRA_OUTPUT, photoUri)
+                    putExtra(MediaStore.EXTRA_OUTPUT, pairs.second)
                 })
             } ?: run {
                 showToast("Khong the tao file de luu anh")
@@ -248,31 +251,6 @@ class ScanShortFlowFragment : Fragment() {
             dialog.window?.clearFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM)
         }
         dialog.show()
-    }
-
-    @SuppressLint("SimpleDateFormat")
-    private fun createFileToSaveImage(): Uri? {
-        return try {
-            // Tạo tên file ảnh
-            val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())
-            val storageDir: File? =
-                requireContext().getExternalFilesDir(Environment.DIRECTORY_PICTURES)
-            val file = File.createTempFile(
-                "JPEG_${timeStamp}_", /* prefix */
-                ".jpg", /* suffix */
-                storageDir /* directory */
-            ).apply {
-                // Lưu đường dẫn file để sử dụng sau
-                currentPhotoPath = absolutePath
-            }
-
-            return FileProvider.getUriForFile(
-                requireContext().applicationContext, "com.kid.productscanner.fileprovider", file
-            )
-        } catch (e: Exception) {
-            e.printStackTrace()
-            null
-        }
     }
 
     private fun detectTexts(fileUri: Uri, foundTextsCallback: ((List<String>) -> Unit)) {
