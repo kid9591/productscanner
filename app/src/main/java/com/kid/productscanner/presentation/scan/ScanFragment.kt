@@ -4,6 +4,7 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
+import android.database.sqlite.SQLiteConstraintException
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
@@ -12,6 +13,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
 import android.widget.ArrayAdapter
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
@@ -23,13 +25,19 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.PagerSnapHelper
+import androidx.recyclerview.widget.RecyclerView
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import com.kid.productscanner.R
+import com.kid.productscanner.databinding.DialogInputQuantitiesBinding
 import com.kid.productscanner.databinding.DialogInputQuantityBinding
 import com.kid.productscanner.databinding.FragmentScanBinding
 import com.kid.productscanner.presentation.application.ScannerApplication
+import com.kid.productscanner.presentation.input_quantity.adapter.PacksFoundAdapter
 import com.kid.productscanner.presentation.scan.viewmodel.ScanViewModel
 import com.kid.productscanner.presentation.scan.viewmodel.ScanViewModelFactory
 import com.kid.productscanner.repository.ScannerRepository
@@ -50,6 +58,8 @@ class ScanFragment : Fragment() {
     private lateinit var binding: FragmentScanBinding
 
     private val TAG: String = "chi.trinh"
+
+    private var takingPicture: Boolean = false
 
     private val args: ScanFragmentArgs by navArgs()
 
@@ -82,10 +92,14 @@ class ScanFragment : Fragment() {
 
         binding.atvSelectPartNumber.apply {
             setOnItemClickListener { parent, view, position, id ->
+
                 val selectedPartNumber = parent.getItemAtPosition(position) as String
-                viewModel.findPackWith(selectedPartNumber)?.let { selectedPack ->
-                    showDialogPackFound(selectedPack)
-                } ?: showToast("Không tìm thấy thông tin gói hàng này!")
+                val packs = viewModel.findInTrackingPacksWith(selectedPartNumber)
+                if (packs.isNotEmpty()) {
+                    showDialogPacksFound(packs)
+                } else {
+                    showToast("Không tìm thấy thông tin gói hàng này!")
+                }
             }
             setOnFocusChangeListener { _, focus ->
                 if (focus) {
@@ -97,7 +111,7 @@ class ScanFragment : Fragment() {
             val adapter = ArrayAdapter(
                 requireContext(),
                 android.R.layout.simple_spinner_dropdown_item,
-                packs.map { it.partNumber }
+                packs.map { it.partNumber }.distinct()
             )
             binding.atvSelectPartNumber.setAdapter(adapter)
         }
@@ -140,7 +154,6 @@ class ScanFragment : Fragment() {
     private val takePictureResultLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == Activity.RESULT_OK) {
-
                 binding.relativeLoading.isVisible = true
 
                 val imageUri = Uri.fromFile(File(currentPhotoPath))
@@ -149,13 +162,15 @@ class ScanFragment : Fragment() {
                     lifecycleScope.launch {
                         run breaking@{
                             foundTexts.forEach { foundText ->
-                                val pack = if (foundText.length >= args.shortestPartNumber) {
-                                    Log.d(TAG, "findingPack: $foundText")
-                                    viewModel.findPackWith(foundText)
-                                } else null
-                                if (pack != null) {
+                                val packs =
+                                    if (foundText.length >= viewModel.shortestPartNumber.length) {
+                                        Log.d(TAG, "findingPack: $foundText")
+                                        viewModel.findInTrackingPacksWith(foundText)
+                                    } else null
+                                if (!packs.isNullOrEmpty()) {
+                                    takingPicture = true
                                     binding.relativeLoading.isVisible = false
-                                    showDialogPackFound(pack)
+                                    showDialogPacksFound(packs)
                                     return@breaking
                                 }
                             }
@@ -166,49 +181,76 @@ class ScanFragment : Fragment() {
                         }
                     }
                 }
+            } else {
+                takingPicture = false
             }
         }
 
-    private fun showDialogPackFound(pack: Pack) {
+    private fun showDialogPacksFound(packs: List<Pack>) {
         val builder = AlertDialog.Builder(requireContext())
-        val binding = DataBindingUtil.inflate<DialogInputQuantityBinding>(
-            LayoutInflater.from(requireContext()),
-            R.layout.dialog_input_quantity,
-            null,
-            false
+        val binding = DialogInputQuantitiesBinding.inflate(
+            LayoutInflater.from(requireContext()), null, false
         )
-        binding.pack = pack
-        //sửa lại pack đã điền
-        if (pack.quantityReceived.isNotEmpty()) {
-            binding.editTextQuantity.setText(pack.quantityReceived)
+        binding.apply {
+            viewModel = this@ScanFragment.viewModel
+            lifecycleOwner = this@ScanFragment.viewLifecycleOwner
+
+            if (packs.size > 1) {
+                this@ScanFragment.viewModel.showNextPackButtonLiveData.value = true
+            }
+
+            recyclerPacks.apply {
+                layoutManager =
+                    GridLayoutManager(requireContext(), 1, LinearLayoutManager.HORIZONTAL, false)
+                val snapHelper = PagerSnapHelper()
+                snapHelper.attachToRecyclerView(this)
+                addOnScrollListener(object : RecyclerView.OnScrollListener() {
+                    override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                        super.onScrollStateChanged(recyclerView, newState)
+                        if (newState == RecyclerView.SCROLL_STATE_IDLE) {
+                            snapHelper.findSnapView(recyclerView.layoutManager)?.let { snapView ->
+                                val snapPosition = recyclerView.layoutManager?.getPosition(snapView) ?: -1
+                                this@ScanFragment.viewModel.showNextPackButtonLiveData.value = snapPosition < packs.size - 1
+                                this@ScanFragment.viewModel.showBackPackButtonLiveData.value = snapPosition > 0
+                            }
+                        }
+                    }
+                })
+                adapter = PacksFoundAdapter(packs)
+            }
         }
 
         builder.setCancelable(false)
         builder.setView(binding.root)
         builder.setPositiveButton("OK") { dialog, _ ->
-            if (binding.editTextQuantity.text.toString().isEmpty()) {
-                showToast("Hãy nhập số lượng gói hàng")
-            } else {
-                lifecycleScope.launch(Dispatchers.IO) {
-                    pack.apply {
-                        quantityReceived = binding.editTextQuantity.text.toString()
-                        dateReceivedMillis = System.currentTimeMillis()
-                    }
-                    if (viewModel.updatePack(pack)) {
-                        withContext(Dispatchers.Main) {
-                            showToast("Thành công!")
+            lifecycleScope.launch(Dispatchers.IO) {
+                packs.forEach { it.dateReceivedMillis = System.currentTimeMillis() }
+                try {
+                    viewModel.updatePacks(packs)
+                    withContext(Dispatchers.Main) {
+                        showToast("Thành công!")
+                        if (takingPicture) {
                             this@ScanFragment.binding.buttonTakePicture.performClick()
-                            dialog.dismiss()
                         }
+                        dialog.dismiss()
                     }
+                } catch (e: SQLiteConstraintException) {
+                    withContext(Dispatchers.Main) {
+                        showToast("Lỗi khi lưu dữ liệu!")
+                    }
+                    e.printStackTrace()
                 }
             }
         }
         builder.setNegativeButton("Cancel") { dialog, _ ->
+            takingPicture = false
             dialog.dismiss()
         }
 
         val dialog = builder.create()
+        dialog.setOnShowListener {
+            dialog.window?.clearFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM)
+        }
         dialog.show()
     }
 

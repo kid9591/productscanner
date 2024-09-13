@@ -64,4 +64,6 @@ dependencies {
     implementation "org.apache.poi:poi-ooxml:$poi_version"
 
     implementation 'com.google.mlkit:text-recognition:16.0.1'
+
+    implementation("androidx.recyclerview:recyclerview:1.3.2")
 }

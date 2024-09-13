@@ -37,6 +37,8 @@ class ScannerRepository(private val scannerDatabase: ScannerDatabase) {
     fun updatePack(pack: Pack) =
         scannerDatabase.packDao().update(pack)
 
+    fun updatePacks(packs: List<Pack>) = scannerDatabase.packDao().update(packs)
+
     fun getChangedPacks(): List<Pack> =
         scannerDatabase.packDao().getChangedPacks()
 

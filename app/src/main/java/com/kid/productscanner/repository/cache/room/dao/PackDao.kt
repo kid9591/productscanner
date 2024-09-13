@@ -2,23 +2,22 @@ package com.kid.productscanner.repository.cache.room.dao
 
 import androidx.room.Dao
 import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import androidx.room.Update
 import com.kid.productscanner.repository.cache.room.entity.Pack
 
 @Dao
 interface PackDao {
-//    @Query("SELECT * FROM package ORDER BY id DESC LIMIT 1")
-//    fun loadLast(): Excel
-
     @Insert
     fun insert(pack: Pack)
-//
-//    @Delete
-//    fun delete(excel: Excel)
 
     @Update
     fun update(pack: Pack): Int
+
+    @Update(onConflict = OnConflictStrategy.ABORT)
+    fun update(packs: List<Pack>): Int
 
     @Insert
     fun insertAll(packs: List<Pack>)

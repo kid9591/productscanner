@@ -1,6 +1,5 @@
 package com.kid.productscanner.presentation.scan.viewmodel
 
-import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -24,6 +23,11 @@ class ScanViewModel(private val scannerRepository: ScannerRepository) : ViewMode
             scannerRepository.updatePack(pack) == 1
         }.await()
 
+    suspend fun updatePacks(packs: List<Pack>) =
+        viewModelScope.async(Dispatchers.IO) {
+            scannerRepository.updatePacks(packs)
+        }.await()
+
     val packsBelongsToTrackingNumber
         get() = packsBelongsToTrackingNumberLiveData.value
     val packsBelongsToTrackingNumberLiveData = MutableLiveData<List<Pack>>()
@@ -34,23 +38,23 @@ class ScanViewModel(private val scannerRepository: ScannerRepository) : ViewMode
             packsBelongsToTrackingNumberLiveData.postValue(packs)
         }
 
-    fun findPackWith(partNumber: String): Pack? =
-        packsBelongsToTrackingNumber?.firstOrNull { it.partNumber.trim() == partNumber.trim() }
-            ?: packsBelongsToTrackingNumber?.firstOrNull {
-                partNumber.replace("O", "0").trim().lowercase() == it.partNumber.trim().lowercase()
-            }
-            ?: packsBelongsToTrackingNumber?.firstOrNull {
-                partNumber.replace("0", "O").trim().lowercase() == it.partNumber.trim().lowercase()
-            }
+    fun findInTrackingPacksWith(partNumber: String): List<Pack> =
+        packsBelongsToTrackingNumber?.filter {
+            it.partNumber.trim() == partNumber.trim()
+        } ?: packsBelongsToTrackingNumber?.filter {
+            partNumber.replace("O", "0").trim().lowercase() == it.partNumber.trim().lowercase()
+        } ?: packsBelongsToTrackingNumber?.filter {
+            partNumber.replace("0", "O").trim().lowercase() == it.partNumber.trim().lowercase()
+        } ?: emptyList()
 
-    fun findInAllPacksWith(partNumber: String): Pack? =
-        allPacks?.firstOrNull { it.partNumber.trim() == partNumber.trim() }
-            ?: allPacks?.firstOrNull {
-                partNumber.replace("O", "0").trim().lowercase() == it.partNumber.trim().lowercase()
-            }
-            ?: allPacks?.firstOrNull {
-                partNumber.replace("0", "O").trim().lowercase() == it.partNumber.trim().lowercase()
-            }
+    fun findInAllPacksWith(partNumber: String): List<Pack> =
+        allPacks?.filter {
+            it.partNumber.trim() == partNumber.trim()
+        } ?: allPacks?.filter {
+            partNumber.replace("O", "0").trim().lowercase() == it.partNumber.trim().lowercase()
+        } ?: allPacks?.filter {
+            partNumber.replace("0", "O").trim().lowercase() == it.partNumber.trim().lowercase()
+        } ?: emptyList()
 
     val allPacks
         get() = allPacksLiveData.value
@@ -66,6 +70,8 @@ class ScanViewModel(private val scannerRepository: ScannerRepository) : ViewMode
     fun findShortestPartNumber() =
         viewModelScope.launch(Dispatchers.IO) {
             shortestPartNumber = scannerRepository.findShortestPartNumber()
-            Log.d("chi.trinh", "findShortestPartNumber: $shortestPartNumber")
         }
+
+    val showNextPackButtonLiveData = MutableLiveData(false)
+    val showBackPackButtonLiveData = MutableLiveData(false)
 }
