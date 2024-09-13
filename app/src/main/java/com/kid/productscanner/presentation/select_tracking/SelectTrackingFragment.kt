@@ -2,6 +2,7 @@ package com.kid.productscanner.presentation.select_tracking
 
 import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -56,12 +57,14 @@ class SelectTrackingFragment : Fragment() {
             setOnItemClickListener { parent, view, position, id ->
                 val selectedItem = parent.getItemAtPosition(position) as String
 
-                binding.textShortestPn.text = "Đang tìm kiếm Part Number ngắn nhất..."
-                viewModel.findShortestPartNumber(selectedItem)
+                if (selectedItem.isNotEmpty()) {
+                    binding.textShortestPn.text = "Đang tìm kiếm Part Number ngắn nhất..."
+                    viewModel.findShortestPartNumber(selectedItem)
 
-                lifecycleScope.launch {
-                    delay(100)
-                    binding.buttonScan.performClick()
+                    lifecycleScope.launch {
+                        delay(100)
+                        binding.buttonScan.performClick()
+                    }
                 }
             }
             setOnFocusChangeListener { _, focus ->
