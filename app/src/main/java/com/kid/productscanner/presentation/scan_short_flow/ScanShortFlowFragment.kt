@@ -1,14 +1,11 @@
 package com.kid.productscanner.presentation.scan_short_flow
 
-import com.kid.productscanner.BuildConfig
 import android.Manifest
-import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.database.sqlite.SQLiteConstraintException
 import android.net.Uri
 import android.os.Bundle
-import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
 import android.view.LayoutInflater
@@ -18,7 +15,6 @@ import android.view.WindowManager
 import android.widget.ArrayAdapter
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
-import androidx.core.content.FileProvider
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -29,31 +25,28 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.PagerSnapHelper
 import androidx.recyclerview.widget.RecyclerView
 import com.google.mlkit.vision.common.InputImage
-import com.google.mlkit.vision.text.TextRecognition
-import com.google.mlkit.vision.text.latin.TextRecognizerOptions
+import com.google.mlkit.vision.text.TextRecognizer
 import com.kid.productscanner.R
 import com.kid.productscanner.databinding.DialogInputQuantitiesBinding
 import com.kid.productscanner.databinding.FragmentScanShortFlowBinding
-import com.kid.productscanner.presentation.application.ScannerApplication
 import com.kid.productscanner.presentation.input_quantity.adapter.PacksFoundAdapter
 import com.kid.productscanner.presentation.scan.viewmodel.ScanViewModel
-import com.kid.productscanner.presentation.scan.viewmodel.ScanViewModelFactory
 import com.kid.productscanner.repository.ScannerRepository
 import com.kid.productscanner.repository.cache.room.entity.Pack
 import com.kid.productscanner.utils.createFileToSaveImage
 import com.kid.productscanner.utils.showToast
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
-import java.text.SimpleDateFormat
-import java.util.Date
+import javax.inject.Inject
 
-/**
- * A simple [Fragment] subclass as the second destination in the navigation.
- */
+
+@AndroidEntryPoint
 class ScanShortFlowFragment : Fragment() {
+
+    @Inject lateinit var scannerRepo: ScannerRepository
 
     private lateinit var binding: FragmentScanShortFlowBinding
 
@@ -61,13 +54,9 @@ class ScanShortFlowFragment : Fragment() {
 
     private var takingPicture: Boolean = false
 
-    private val viewModel: ScanViewModel by viewModels {
-        val repository =
-            ScannerRepository((requireActivity().application as ScannerApplication).scannerDatabase)
-        ScanViewModelFactory(repository)
-    }
+    private val viewModel: ScanViewModel by viewModels()
 
-    private val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
+    @Inject lateinit var recognizer: TextRecognizer
 
     private lateinit var currentPhotoPath: String
 

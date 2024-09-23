@@ -13,15 +13,18 @@ import com.kid.productscanner.repository.cache.room.entity.Excel
 import com.kid.productscanner.repository.cache.room.entity.Pack
 import com.kid.productscanner.utils.findIndexOfColumn
 import com.kid.productscanner.utils.findLastNonEmptyRowIndex
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import org.apache.poi.ss.usermodel.Workbook
 import java.text.SimpleDateFormat
 import java.util.Date
+import javax.inject.Inject
 import kotlin.math.roundToInt
 
-class SelectExcelViewModel(private val scannerRepository: ScannerRepository) : ViewModel() {
+@HiltViewModel
+class SelectExcelViewModel @Inject constructor(private val scannerRepository: ScannerRepository) : ViewModel() {
 
     fun deleteAllExcel() {
         viewModelScope.launch(Dispatchers.IO) {

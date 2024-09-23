@@ -30,6 +30,7 @@ import com.kid.productscanner.repository.ScannerRepository
 import com.kid.productscanner.repository.cache.room.entity.Excel
 import com.kid.productscanner.utils.getExcelFilesDir
 import com.kid.productscanner.utils.showToast
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -37,19 +38,13 @@ import org.apache.poi.ss.usermodel.WorkbookFactory
 import java.io.File
 
 
-/**
- * A simple [Fragment] subclass as the default destination in the navigation.
- */
+@AndroidEntryPoint
 class SelectExcelFragment : Fragment() {
 
     private val TAG: String = "chi.trinh"
     private lateinit var binding: FragmentSelectExcelBinding
 
-    private val viewModel: SelectExcelViewModel by viewModels {
-        val repository =
-            ScannerRepository((requireActivity().application as ScannerApplication).scannerDatabase)
-        SelectExcelViewModelFactory(repository)
-    }
+    private val viewModel: SelectExcelViewModel by viewModels()
 
     private var selectExcelResultLauncher: ActivityResultLauncher<Intent> =
         registerForActivityResult(

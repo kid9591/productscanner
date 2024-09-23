@@ -1,13 +1,11 @@
 package com.kid.productscanner.presentation.scan
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.database.sqlite.SQLiteConstraintException
 import android.net.Uri
 import android.os.Bundle
-import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
 import android.view.LayoutInflater
@@ -17,7 +15,6 @@ import android.view.WindowManager
 import android.widget.ArrayAdapter
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
-import androidx.core.content.FileProvider
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -29,30 +26,23 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.PagerSnapHelper
 import androidx.recyclerview.widget.RecyclerView
 import com.google.mlkit.vision.common.InputImage
-import com.google.mlkit.vision.text.TextRecognition
-import com.google.mlkit.vision.text.latin.TextRecognizerOptions
-import com.kid.productscanner.BuildConfig
+import com.google.mlkit.vision.text.TextRecognizer
 import com.kid.productscanner.R
 import com.kid.productscanner.databinding.DialogInputQuantitiesBinding
 import com.kid.productscanner.databinding.FragmentScanBinding
-import com.kid.productscanner.presentation.application.ScannerApplication
 import com.kid.productscanner.presentation.input_quantity.adapter.PacksFoundAdapter
 import com.kid.productscanner.presentation.scan.viewmodel.ScanViewModel
-import com.kid.productscanner.presentation.scan.viewmodel.ScanViewModelFactory
-import com.kid.productscanner.repository.ScannerRepository
 import com.kid.productscanner.repository.cache.room.entity.Pack
 import com.kid.productscanner.utils.createFileToSaveImage
 import com.kid.productscanner.utils.showToast
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
-import java.text.SimpleDateFormat
-import java.util.Date
+import javax.inject.Inject
 
-/**
- * A simple [Fragment] subclass as the second destination in the navigation.
- */
+@AndroidEntryPoint
 class ScanFragment : Fragment() {
 
     private lateinit var binding: FragmentScanBinding
@@ -63,13 +53,10 @@ class ScanFragment : Fragment() {
 
     private val args: ScanFragmentArgs by navArgs()
 
-    private val viewModel: ScanViewModel by viewModels {
-        val repository =
-            ScannerRepository((requireActivity().application as ScannerApplication).scannerDatabase)
-        ScanViewModelFactory(repository)
-    }
+    private val viewModel: ScanViewModel by viewModels()
 
-    private val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
+    @Inject
+    lateinit var recognizer: TextRecognizer
 
     private lateinit var currentPhotoPath: String
 
@@ -186,7 +173,6 @@ class ScanFragment : Fragment() {
         }
 
     private fun showDialogPacksFound(packs: List<Pack>) {
-        val builder = AlertDialog.Builder(requireContext())
         val binding = DialogInputQuantitiesBinding.inflate(
             LayoutInflater.from(requireContext()), null, false
         )
@@ -208,9 +194,12 @@ class ScanFragment : Fragment() {
                         super.onScrollStateChanged(recyclerView, newState)
                         if (newState == RecyclerView.SCROLL_STATE_IDLE) {
                             snapHelper.findSnapView(recyclerView.layoutManager)?.let { snapView ->
-                                val snapPosition = recyclerView.layoutManager?.getPosition(snapView) ?: -1
-                                this@ScanFragment.viewModel.showNextPackButtonLiveData.value = snapPosition < packs.size - 1
-                                this@ScanFragment.viewModel.showBackPackButtonLiveData.value = snapPosition > 0
+                                val snapPosition =
+                                    recyclerView.layoutManager?.getPosition(snapView) ?: -1
+                                this@ScanFragment.viewModel.showNextPackButtonLiveData.value =
+                                    snapPosition < packs.size - 1
+                                this@ScanFragment.viewModel.showBackPackButtonLiveData.value =
+                                    snapPosition > 0
                             }
                         }
                     }
@@ -219,38 +208,43 @@ class ScanFragment : Fragment() {
             }
         }
 
-        builder.setCancelable(false)
-        builder.setView(binding.root)
-        builder.setPositiveButton("OK") { dialog, _ ->
-            lifecycleScope.launch(Dispatchers.IO) {
-                packs.forEach { it.dateReceivedMillis = System.currentTimeMillis() }
-                try {
-                    viewModel.updatePacks(packs)
-                    withContext(Dispatchers.Main) {
-                        showToast("Thành công!")
-                        if (takingPicture) {
-                            this@ScanFragment.binding.buttonTakePicture.performClick()
+        val builder = AlertDialog.Builder(requireContext()).apply {
+            setCancelable(false)
+            setView(binding.root)
+            setPositiveButton("OK") { dialog, _ ->
+                lifecycleScope.launch(Dispatchers.IO) {
+                    packs.forEach { it.dateReceivedMillis = System.currentTimeMillis() }
+                    try {
+                        viewModel.updatePacks(packs)
+                        withContext(Dispatchers.Main) {
+                            showToast("Thành công!")
+                            if (takingPicture) {
+                                this@ScanFragment.binding.buttonTakePicture.performClick()
+                            }
+                            dialog.dismiss()
                         }
-                        dialog.dismiss()
+                    } catch (e: SQLiteConstraintException) {
+                        withContext(Dispatchers.Main) {
+                            showToast("Lỗi khi lưu dữ liệu!")
+                        }
+                        e.printStackTrace()
                     }
-                } catch (e: SQLiteConstraintException) {
-                    withContext(Dispatchers.Main) {
-                        showToast("Lỗi khi lưu dữ liệu!")
-                    }
-                    e.printStackTrace()
                 }
             }
-        }
-        builder.setNegativeButton("Cancel") { dialog, _ ->
-            takingPicture = false
-            dialog.dismiss()
+            setNegativeButton("Cancel") { dialog, _ ->
+                takingPicture = false
+                dialog.dismiss()
+            }
         }
 
+
         val dialog = builder.create()
-        dialog.setOnShowListener {
-            dialog.window?.clearFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM)
+        dialog.apply {
+            setOnShowListener {
+                window?.clearFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM)
+            }
+            show()
         }
-        dialog.show()
     }
 
     private fun detectTexts(fileUri: Uri, foundTextsCallback: ((List<String>) -> Unit)) {

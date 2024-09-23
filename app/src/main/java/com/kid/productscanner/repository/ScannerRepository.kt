@@ -4,8 +4,9 @@ import androidx.lifecycle.LiveData
 import com.kid.productscanner.repository.cache.room.ScannerDatabase
 import com.kid.productscanner.repository.cache.room.entity.Excel
 import com.kid.productscanner.repository.cache.room.entity.Pack
+import javax.inject.Inject
 
-class ScannerRepository(private val scannerDatabase: ScannerDatabase) {
+class ScannerRepository @Inject constructor(private val scannerDatabase: ScannerDatabase) {
 
     fun getLastExcel(): LiveData<Excel?> {
         return scannerDatabase.excelDao().getLast()

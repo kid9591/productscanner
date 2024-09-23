@@ -1,19 +1,7 @@
 package com.kid.productscanner.presentation.application
 
 import android.app.Application
-import androidx.room.Room
-import com.kid.productscanner.repository.cache.room.ScannerDatabase
+import dagger.hilt.android.HiltAndroidApp
 
-class ScannerApplication : Application() {
-
-    lateinit var scannerDatabase: ScannerDatabase
-
-    override fun onCreate() {
-        super.onCreate()
-
-        scannerDatabase = Room.databaseBuilder(
-            applicationContext,
-            ScannerDatabase::class.java, "scanner_db"
-        ).build()
-    }
-}
+@HiltAndroidApp
+class ScannerApplication : Application()

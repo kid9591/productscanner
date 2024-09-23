@@ -4,11 +4,14 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.kid.productscanner.repository.ScannerRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class SelectTrackingViewModel(private val scannerRepository: ScannerRepository) : ViewModel() {
+@HiltViewModel
+class SelectTrackingViewModel @Inject constructor(private val scannerRepository: ScannerRepository) : ViewModel() {
 
     suspend fun getDistinctTrackingNumbers(): List<String> =
         viewModelScope.async(Dispatchers.IO) {

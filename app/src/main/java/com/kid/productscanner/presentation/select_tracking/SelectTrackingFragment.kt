@@ -18,25 +18,20 @@ import com.kid.productscanner.presentation.application.ScannerApplication
 import com.kid.productscanner.presentation.select_tracking.viewmodel.SelectTrackingViewModel
 import com.kid.productscanner.presentation.select_tracking.viewmodel.SelectTrackingViewModelFactory
 import com.kid.productscanner.repository.ScannerRepository
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-/**
- * A simple [Fragment] subclass as the second destination in the navigation.
- */
+@AndroidEntryPoint
 class SelectTrackingFragment : Fragment() {
 
     private lateinit var binding: FragmentSelectTrackingBinding
 
     private val TAG: String = "chi.trinh"
 
-    private val viewModel: SelectTrackingViewModel by viewModels {
-        val repository =
-            ScannerRepository((requireActivity().application as ScannerApplication).scannerDatabase)
-        SelectTrackingViewModelFactory(repository)
-    }
+    private val viewModel: SelectTrackingViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,

@@ -5,11 +5,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.kid.productscanner.repository.ScannerRepository
 import com.kid.productscanner.repository.cache.room.entity.Pack
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class ScanViewModel(private val scannerRepository: ScannerRepository) : ViewModel() {
+@HiltViewModel
+class ScanViewModel @Inject constructor(private val scannerRepository: ScannerRepository) : ViewModel() {
 
     val selectedTrackingNumber
         get() = selectedTrackingNumberLiveData.value
